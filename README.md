@@ -1,26 +1,22 @@
-# 🃏 Блэкджек — Discord бот
+🃏 Blackjack — Discord Bot
 
-Бот для игры в 21 (Blackjack) с дилером. Только ты видишь свои карты.
+A Discord bot for playing Blackjack (21) against a dealer. Only you see your cards.
 
-## Команды
-- `/bj` — начать игру
-- `/hit` — взять карту
-- `/stand` — остановиться
+## Features
+- Play against a dealer with `/bj`
+- Only you see your cards (ephemeral messages)
+- Game state stored in SQLite
+- Statistics and history tracking
 
-## Установка
-1. Установи Python 3.12+
-2. Установи библиотеки: `pip install -r requirements.txt`
-3. Создай файл `.env` и добавь `DISCORD_TOKEN=твой_токен`
-4. Запусти: `python main.py`
+## Commands
+| Command | Description |
+|---------|-------------|
+| `/bj` | Start a new game |
+| `/stats` | Your game statistics |
+| `/history` | Last 5 games |
 
-## Технологии
-- Python 3.13
-- discord.py 2.7.1
-- python-dotenv
-
-## Структура
-- `main.py` — команды и запуск
-- `blackjack.py` — логика игры
-- `config.py` — настройки
-- `.env` — токен (не заливать)
-- `requirements.txt` — библиотеки
+## Installation
+1. Install Python 3.12+
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
