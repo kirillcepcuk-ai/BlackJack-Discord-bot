@@ -2,7 +2,7 @@ import discord # pyright: ignore[reportMissingImports]
 from discord.ext import commands # pyright: ignore[reportMissingImports]
 from config import TOKEN, COLOR_GREEN, COLOR_RED, COLOR_GOLD, COLOR_PURPLE, COLOR_BLUE
 from blackjack import BlackjackGame
-import database as db # pyright: ignore[reportMissingImports]
+import database as db
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -22,7 +22,8 @@ class BlackjackView(discord.ui.View):
             await interaction.response.send_message("❌ Не твоя игра", ephemeral=True)
             return
 
-        result, player_score, dealer_score = self.game.player_turn("hit")
+        result, player_score, dealer_score, player_image, dealer_image = self.game.player_turn("hit")
+        
         if self.game.finished:
             del games[self.user_id]
             if self.game.winner == "player":
@@ -40,9 +41,22 @@ class BlackjackView(discord.ui.View):
 
             embed = discord.Embed(
                 title="🃏 Блэкджек",
-                description=f"{result}\n\n**Твои очки:** {player_score}\n**Очки дилера:** {dealer_score}",
+                description=result,
                 color=color
             )
+            embed.add_field(
+                name="Твои карты",
+                value=self.game.get_player_cards_text(),
+                inline=False
+            )
+            embed.add_field(
+                name="Карты дилера",
+                value=self.game.get_dealer_cards_text(hide_first=False),
+                inline=False
+            )
+            embed.set_footer(text=f"Твои очки: {player_score} | Дилер: {dealer_score}")
+            if player_image:
+                embed.set_image(url=player_image)
             await interaction.response.edit_message(embed=embed, view=None)
             return
 
@@ -51,6 +65,13 @@ class BlackjackView(discord.ui.View):
             description=f"{result}\n\n{self.game.get_status()}",
             color=COLOR_GREEN
         )
+        embed.add_field(
+            name="Твои карты",
+            value=self.game.get_player_cards_text(),
+            inline=False
+        )
+        if player_image:
+            embed.set_image(url=player_image)
         await interaction.response.edit_message(embed=embed, view=self)
 
     @discord.ui.button(label="Остановиться", style=discord.ButtonStyle.red, custom_id="stand")
@@ -59,7 +80,7 @@ class BlackjackView(discord.ui.View):
             await interaction.response.send_message("❌ Не твоя игра", ephemeral=True)
             return
 
-        result, player_score, dealer_score = self.game.player_turn("stand")
+        result, player_score, dealer_score, player_image, dealer_image = self.game.player_turn("stand")
         del games[self.user_id]
 
         if self.game.winner == "player":
@@ -77,13 +98,26 @@ class BlackjackView(discord.ui.View):
 
         embed = discord.Embed(
             title="🃏 Блэкджек",
-            description=f"{result}\n\n**Твои очки:** {player_score}\n**Очки дилера:** {dealer_score}",
+            description=result,
             color=color
         )
+        embed.add_field(
+            name="Твои карты",
+            value=self.game.get_player_cards_text(),
+            inline=False
+        )
+        embed.add_field(
+            name="Карты дилера",
+            value=self.game.get_dealer_cards_text(hide_first=False),
+            inline=False
+        )
+        embed.set_footer(text=f"Твои очки: {player_score} | Дилер: {dealer_score}")
+        if player_image:
+            embed.set_image(url=player_image)
         await interaction.response.edit_message(embed=embed, view=None)
 
 @bot.event
-async def on_ready() -> None:
+async def on_ready():
     db.init_db()
     print(f"✅ {bot.user} запущен")
     await bot.change_presence(activity=discord.Game(name="/bj"))
@@ -104,6 +138,14 @@ async def bj(interaction: discord.Interaction) -> None:
         description=game.get_status(),
         color=COLOR_PURPLE
     )
+    embed.add_field(
+        name="Твои карты",
+        value=game.get_player_cards_text(),
+        inline=False
+    )
+    embed.set_image(url=game.get_start_card())
+    embed.set_footer(text=f"Твои очки: {game.player_score} | Дилер: скрыто")
+    
     view = BlackjackView(game, interaction.user.id)
     await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
